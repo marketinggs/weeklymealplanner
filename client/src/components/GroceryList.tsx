@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Loader2, Printer } from "lucide-react";
+import { Loader2, Printer, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { GroceryListResponse } from "@/lib/types";
 import ShoppingTips from "./ShoppingTips";
 
@@ -14,6 +15,8 @@ interface GroceryListProps {
 
 export default function GroceryList({ groceryList, isLoading }: GroceryListProps) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     if (groceryList && !isLoading) {
@@ -23,6 +26,43 @@ export default function GroceryList({ groceryList, isLoading }: GroceryListProps
   
   const handlePrintList = () => {
     window.print();
+  };
+  
+  const handleCopyList = () => {
+    if (!groceryList) return;
+    
+    let copyText = "Your Grocery List\n\n";
+    
+    groceryList.categories.forEach(category => {
+      copyText += `${category.name}:\n`;
+      category.items.forEach(item => {
+        copyText += `- ${item}\n`;
+      });
+      copyText += "\n";
+    });
+    
+    navigator.clipboard.writeText(copyText)
+      .then(() => {
+        setIsCopied(true);
+        toast({
+          title: "Copied!",
+          description: "Grocery list copied to clipboard",
+          variant: "default",
+        });
+        
+        // Reset copied state after 2 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 2000);
+      })
+      .catch(err => {
+        console.error("Failed to copy: ", err);
+        toast({
+          title: "Error",
+          description: "Failed to copy grocery list",
+          variant: "destructive",
+        });
+      });
   };
   
   // Calculate stats
@@ -39,16 +79,37 @@ export default function GroceryList({ groceryList, isLoading }: GroceryListProps
             <CardContent className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">Your Grocery List</h2>
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-500 hover:text-primary"
-                  onClick={handlePrintList}
-                  disabled={isLoading || !groceryList}
-                >
-                  <Printer className="h-5 w-5 mr-1" />
-                  <span className="text-sm">Print</span>
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-primary"
+                    onClick={handleCopyList}
+                    disabled={isLoading || !groceryList}
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="h-5 w-5 mr-1 text-green-500" />
+                        <span className="text-sm text-green-500">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-5 w-5 mr-1" />
+                        <span className="text-sm">Copy</span>
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-primary"
+                    onClick={handlePrintList}
+                    disabled={isLoading || !groceryList}
+                  >
+                    <Printer className="h-5 w-5 mr-1" />
+                    <span className="text-sm">Print</span>
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-6">

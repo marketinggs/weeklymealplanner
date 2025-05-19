@@ -5,7 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
+import { Loader2, Users } from "lucide-react";
 import { MealPlan, DayMeals } from "@/lib/types";
 import { sampleData } from "@/lib/sampleData";
 
@@ -32,6 +39,7 @@ export default function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps)
       friday: { lunch: "", dinner: "" },
       saturday: { lunch: "", dinner: "" },
       sunday: { lunch: "", dinner: "" },
+      numberOfPeople: 2
     }
   });
 
@@ -41,17 +49,23 @@ export default function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps)
     // Count filled inputs
     let filled = 0;
     weekdays.forEach(day => {
-      if (formValues[day as keyof MealPlan]?.lunch?.trim()) filled++;
-      if (formValues[day as keyof MealPlan]?.dinner?.trim()) filled++;
+      const dayMeals = formValues[day as keyof MealPlan] as DayMeals;
+      if (dayMeals?.lunch?.trim()) filled++;
+      if (dayMeals?.dinner?.trim()) filled++;
     });
     setFilledInputs(filled);
   }, [formValues]);
 
   const handleFillSampleData = () => {
     weekdays.forEach(day => {
-      setValue(`${day}.lunch` as any, sampleData[day as keyof typeof sampleData].lunch);
-      setValue(`${day}.dinner` as any, sampleData[day as keyof typeof sampleData].dinner);
+      const sampleDay = sampleData[day as keyof typeof sampleData];
+      if (sampleDay && 'lunch' in sampleDay && 'dinner' in sampleDay) {
+        setValue(`${day}.lunch` as any, sampleDay.lunch);
+        setValue(`${day}.dinner` as any, sampleDay.dinner);
+      }
     });
+    
+    // Keep existing number of people setting
     
     setNotification({
       message: "Sample data loaded successfully",
@@ -62,6 +76,10 @@ export default function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps)
     setTimeout(() => {
       setNotification(null);
     }, 5000);
+  };
+  
+  const handlePeopleChange = (value: string) => {
+    setValue("numberOfPeople", parseInt(value, 10));
   };
 
   const processForm = (data: MealPlan) => {
@@ -126,8 +144,28 @@ export default function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps)
             </div>
             
             <div className="pt-4 border-t border-gray-200">
-              <div className="flex flex-col sm:flex-row justify-between items-center">
-                <div className="mb-4 sm:mb-0">
+              <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+                <div className="w-full md:w-auto flex flex-col">
+                  <Label htmlFor="numberOfPeople" className="mb-1">Number of People</Label>
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-4 w-4 text-gray-500" />
+                    <Select 
+                      defaultValue={formValues.numberOfPeople?.toString() || "2"} 
+                      onValueChange={handlePeopleChange}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                          <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'person' : 'people'}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="w-full md:w-auto">
                   <Button 
                     type="button" 
                     variant="link" 
@@ -137,7 +175,9 @@ export default function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps)
                     Fill with sample data
                   </Button>
                 </div>
-                
+              </div>
+              
+              <div className="flex justify-end">
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"

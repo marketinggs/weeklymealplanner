@@ -11,6 +11,7 @@ export interface MealPlan {
   friday: DayMeals;
   saturday: DayMeals;
   sunday: DayMeals;
+  numberOfPeople?: number;
 }
 
 export interface GroceryCategory {
