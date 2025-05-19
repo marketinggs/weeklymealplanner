@@ -49,7 +49,8 @@ export const mealPlanSchema = z.object({
   sunday: z.object({
     lunch: z.string().optional(),
     dinner: z.string().optional(),
-  })
+  }),
+  numberOfPeople: z.number().optional().default(2)
 });
 
 export const groceryListSchema = z.object({

@@ -27,10 +27,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Count number of non-empty meals
       let mealCount = 0;
-      Object.keys(mealPlan).forEach(day => {
+      const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+      
+      weekdays.forEach(day => {
         const dayData = mealPlan[day as keyof typeof mealPlan];
-        if (dayData.lunch && dayData.lunch.trim()) mealCount++;
-        if (dayData.dinner && dayData.dinner.trim()) mealCount++;
+        // Check if dayData is a day object and not numberOfPeople
+        if (dayData && typeof dayData === 'object' && 'lunch' in dayData && 'dinner' in dayData) {
+          if (dayData.lunch && dayData.lunch.trim()) mealCount++;
+          if (dayData.dinner && dayData.dinner.trim()) mealCount++;
+        }
       });
       
       if (mealCount === 0) {
@@ -39,24 +44,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Prepare meals for OpenAI API
       const meals: string[] = [];
-      Object.keys(mealPlan).forEach(day => {
+      weekdays.forEach(day => {
         const dayData = mealPlan[day as keyof typeof mealPlan];
-        if (dayData.lunch && dayData.lunch.trim()) {
-          meals.push(`${day.charAt(0).toUpperCase() + day.slice(1)} Lunch: ${dayData.lunch}`);
-        }
-        if (dayData.dinner && dayData.dinner.trim()) {
-          meals.push(`${day.charAt(0).toUpperCase() + day.slice(1)} Dinner: ${dayData.dinner}`);
+        // Check if dayData is a day object and not numberOfPeople
+        if (dayData && typeof dayData === 'object' && 'lunch' in dayData && 'dinner' in dayData) {
+          if (dayData.lunch && dayData.lunch.trim()) {
+            meals.push(`${day.charAt(0).toUpperCase() + day.slice(1)} Lunch: ${dayData.lunch}`);
+          }
+          if (dayData.dinner && dayData.dinner.trim()) {
+            meals.push(`${day.charAt(0).toUpperCase() + day.slice(1)} Dinner: ${dayData.dinner}`);
+          }
         }
       });
       
+      // Get number of people or default to 2
+      const numberOfPeople = mealPlan.numberOfPeople || 2;
+      
       // Create prompt for OpenAI API
       const prompt = `
-        I need to make a grocery list for the following meals for the week:
+        I need to make a grocery list for the following meals for the week for ${numberOfPeople} ${numberOfPeople === 1 ? 'person' : 'people'}:
         ${meals.join("\n")}
         
         Please organize the ingredients into categories like Produce, Meat, Dairy, Pantry, etc.
         
         For each ingredient, include quantities when possible and combine similar ingredients.
+        Adjust the quantities based on ${numberOfPeople} ${numberOfPeople === 1 ? 'person' : 'people'}.
         
         Output your response in this JSON format:
         {

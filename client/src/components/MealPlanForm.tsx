@@ -49,21 +49,25 @@ export default function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps)
     // Count filled inputs
     let filled = 0;
     weekdays.forEach(day => {
-      const dayMeals = formValues[day as keyof MealPlan] as DayMeals;
-      if (dayMeals?.lunch?.trim()) filled++;
-      if (dayMeals?.dinner?.trim()) filled++;
+      const dayData = formValues[day as keyof MealPlan];
+      // Make sure we're only counting day meals (not numberOfPeople)
+      if (dayData && typeof dayData === 'object' && 'lunch' in dayData && 'dinner' in dayData) {
+        if (dayData.lunch && dayData.lunch.trim()) filled++;
+        if (dayData.dinner && dayData.dinner.trim()) filled++;
+      }
     });
     setFilledInputs(filled);
   }, [formValues]);
 
   const handleFillSampleData = () => {
-    weekdays.forEach(day => {
+    for (const day of weekdays) {
       const sampleDay = sampleData[day as keyof typeof sampleData];
-      if (sampleDay && 'lunch' in sampleDay && 'dinner' in sampleDay) {
+      // Type guard to make TypeScript happy
+      if (sampleDay && typeof sampleDay === 'object' && 'lunch' in sampleDay && 'dinner' in sampleDay) {
         setValue(`${day}.lunch` as any, sampleDay.lunch);
         setValue(`${day}.dinner` as any, sampleDay.dinner);
       }
-    });
+    }
     
     // Keep existing number of people setting
     
