@@ -6,8 +6,8 @@ import { mealPlanSchema, groceryListSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDebKfjD2imDtKnPl52VbCVS_auT_FwTDM';
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Generate grocery list from meal plan
