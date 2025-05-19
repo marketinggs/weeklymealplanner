@@ -6,7 +6,6 @@ import { MealPlan, GroceryListResponse } from "@/lib/types";
 import MealPlanForm from "@/components/MealPlanForm";
 import GroceryList from "@/components/GroceryList";
 import IntroSection from "@/components/IntroSection";
-import IngredientsShowcase from "@/components/IngredientsShowcase";
 import { ClipboardList } from "lucide-react";
 
 export default function Home() {
@@ -62,8 +61,6 @@ export default function Home() {
             isLoading={generateGroceryList.isPending}
           />
         )}
-        
-        <IngredientsShowcase />
       </main>
       
       <footer className="bg-gray-800 text-white">
@@ -79,7 +76,7 @@ export default function Home() {
             </div>
             <div className="mt-8 md:mt-0">
               <p className="text-center md:text-right text-sm text-gray-400">
-                Powered by Gemini API. Create your perfect grocery list with AI assistance.
+                Powered by OpenAI. Create your perfect grocery list with AI assistance.
               </p>
             </div>
           </div>
